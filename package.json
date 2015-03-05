@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "description": "Topological sort for streams",
   "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PeterHancock/topsort-stream.git"
+  },
   "dependencies": {
     "through": "~2.3.6",
     "underscore": "~1.7.0",
