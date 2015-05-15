@@ -22,7 +22,9 @@ var topsort = function (nodeResolver) {
                 .then(function (resolved) {
                     delete pending[count];
                     _(resolved).each(stream.queue, stream);
-              });
+                }).fail(function (reason) {
+                    stream.emit('dependency-error', reason);
+                });
         },
         function() {
             Q.all(_(pending).values()).then(function() {
