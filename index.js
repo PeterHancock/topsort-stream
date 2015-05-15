@@ -56,9 +56,7 @@ Nodes.prototype = {
             .then(function (nodeInfo) {
                 var node = scope.registerNode(nodeInfo, data);
                 return _(scope.getResolvedNodes(node)).map(function (node) {
-                    var data = node.data;
-                    delete node.data;
-                    return data;
+                    return node.data;
                 });
             });
     },
