@@ -1,7 +1,7 @@
 var through = require('through');
 var _ = require('underscore');
-var Q = require('q');
-
+var Promise = require('es6-promise').Promise;
+var denodeify = require('es6-denodeify')(Promise);
 
 /**
     nodeResolver maps Objects read from a stream to Node Objects
@@ -22,12 +22,12 @@ var topsort = function (nodeResolver) {
                 .then(function (resolved) {
                     delete pending[count];
                     _(resolved).each(stream.queue, stream);
-                }).fail(function (reason) {
+                }).catch(function (reason) {
                     stream.emit('dependency-error', reason);
                 });
         },
         function() {
-            Q.all(_(pending).values()).then(function() {
+            Promise.all(_(pending).values()).then(function() {
                 nodes.end(stream);
                 stream.queue(null);
             });
@@ -39,11 +39,11 @@ var topsort = function (nodeResolver) {
 function Nodes (nodeResolver) {
     this.nodes = {};
     if (nodeResolver.length > 1) {
-        this.nodeResolver = Q.denodeify(nodeResolver);
+        this.nodeResolver = denodeify(nodeResolver);
     } else {
         this.nodeResolver = function (data) {
-            return Q.fcall(function () {
-                return nodeResolver(data);
+            return new Promise(function (resolve) {
+                return resolve(nodeResolver(data));
             });
         };
     }

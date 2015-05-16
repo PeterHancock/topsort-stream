@@ -2,7 +2,7 @@ var topsort = require('../index');
 var  through =require('through');
 var from = require('from');
 var _ = require('underscore');
-var Q = require('q');
+var Promise = require('es6-promise').Promise;
 
 describe("Topsort can sort streams when", function() {
   it("is passed no input", function(done) {
@@ -129,7 +129,9 @@ function createAsyncNodeResolver(delayResolver) {
 
 function createPromiseReturningNodeResolver(delayResolver) {
     return function (data) {
-        return Q.delay(delayResolver(data)).then(function () {
+        return new Promise(function (resolve) {
+            return resolve(delayResolver(data));
+        }).then(function () {
             return {
                 id: data.id,
                 deps: data.deps
