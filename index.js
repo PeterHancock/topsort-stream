@@ -1,5 +1,5 @@
 var through = require('through');
-var _ = require('underscore');
+var _ = require('lodash');
 var Promise = require('es6-promise').Promise;
 var denodeify = require('es6-denodeify')(Promise);
 
@@ -21,13 +21,13 @@ var topsort = function (nodeResolver) {
             pending[count] = nodes.handleNode(data)
                 .then(function (resolved) {
                     delete pending[count];
-                    _(resolved).each(stream.queue, stream);
+                    resolved.forEach(stream.queue, stream);
                 }).catch(function (reason) {
                     stream.emit('dependency-error', reason);
                 });
         },
         function() {
-            Promise.all(_(pending).values()).then(function() {
+            Promise.all(_.values(pending)).then(function() {
                 nodes.end(stream);
                 stream.queue(null);
             });
@@ -55,7 +55,7 @@ Nodes.prototype = {
         return this.nodeResolver(data)
             .then(function (nodeInfo) {
                 var node = scope.registerNode(nodeInfo, data);
-                return _(scope.getResolvedNodes(node)).map(function (node) {
+                return scope.getResolvedNodes(node).map(function (node) {
                     return node.data;
                 });
             });
@@ -64,8 +64,8 @@ Nodes.prototype = {
     registerNode: function (nodeInfo, data) {
         var node = this.getNode(nodeInfo.id);
         node.data = data;
-        node.dependencies = _(nodeInfo.deps).map(this.getNode, this) || [];
-        _(node.dependencies).each(function (dep) {
+        node.dependencies = nodeInfo.deps.map(this.getNode, this) || [];
+        node.dependencies.forEach(function (dep) {
             if (!dep.resolved) {
                 dep.dependants.push(node);
             }
@@ -84,7 +84,7 @@ Nodes.prototype = {
             resolvedNodes.push(node);
             var dependants = node.dependants;
             this.deregisterNode(node);
-            _(dependants).each(function (dependant) {
+            dependants.forEach(function (dependant) {
                 resolvedNodes.push.apply(resolvedNodes, this.getResolvedNodes(dependant));
             }, this);
         }

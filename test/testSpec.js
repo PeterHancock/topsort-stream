@@ -1,7 +1,7 @@
 var topsort = require('../index');
 var  through =require('through');
 var from = require('from');
-var _ = require('underscore');
+var _ = require('lodash');
 var Promise = require('es6-promise').Promise;
 
 describe("Topsort can sort streams when", function() {
@@ -160,13 +160,13 @@ function assertAnyOrder(expected, done) {
     return through(function (data) {
         actual.push(data);
     }, function () {
-        expect(_(actual).sortBy(idSorter)).toEqual(_(expected).sortBy(idSorter));
+        expect(_.sortBy(actual, idSorter)).toEqual(_.sortBy(expected, idSorter));
         done();
     });
 }
 
 function assertNonDag(stream, expected, done) {
-    var complete = _(2).after(done);
+    var complete = _.after(2, done);
     return stream.on('dependency-error',
         function (list) {
             expect(list.sort()).toEqual(expected.sort());
