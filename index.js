@@ -23,7 +23,7 @@ var topsort = function (nodeResolver) {
                     delete pending[count];
                     resolved.forEach(stream.queue, stream);
                 }).catch(function (reason) {
-                    stream.emit('dependency-error', reason);
+                    stream.emit('topsort-error:resolving-node', reason);
                 });
         },
         function() {
@@ -106,7 +106,7 @@ Nodes.prototype = {
         });
 
         if (nodesNotResolved.length > 0) {
-            stream.emit('dependency-error', _.pluck(nodesNotResolved, 'id'));
+            stream.emit('topsort-error:unresolved-nodes', _.pluck(nodesNotResolved, 'id'));
         }
     }
 };

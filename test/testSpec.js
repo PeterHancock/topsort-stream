@@ -64,29 +64,53 @@ it("is passed 2 elements, 1 depending upon the other", function(done) {
   });
 });
 
-describe("Sorted stream with emit dependency-error when", function() {
-    it("is passed elements that depend upon themselves", function(done) {
-        var a = createData(1, [1]);
-        assertNonDag(from([a])
-            .pipe(topsort(nodeResolver)), [1], done);
+describe("Sorted stream will emit 'topsort-error' event of type ''", function() {
+    it("is passed objects that depend upon themselves", function(done) {
+        var err = "ERROR";
+        var nodeResolver = function (obj) {
+            throw err;
+        };
+        var complete = _.after(2, done);
+        from([createData(1)])
+            .pipe(topsort(nodeResolver))
+            .on('topsort-error:resolving-node', function (reason) {
+                expect(reason).toEqual(err);
+                complete();
+            })
+            .pipe(through(null, complete));
     });
 
-    it("is passed elements that depend upon each other", function(done) {
+});
+
+describe("Sorted stream will emit 'topsort-error:nodes-unresolved' event when", function() {
+    it("passed objects that depend upon themselves", function(done) {
+        var a = createData(1, [1]);
+        assertNodesUnresolved(
+            from([a]).pipe(topsort(nodeResolver)),
+            [1],
+            done);
+    });
+
+    it("passed objects that depend upon each other", function(done) {
         var a = createData(1, [2]);
         var b = createData(2, [1]);
-        assertNonDag(from([a, b])
-            .pipe(topsort(nodeResolver)), [1, 2], done);
+        assertNodesUnresolved(
+            from([a, b]).pipe(topsort(nodeResolver)),
+            [1, 2],
+            done);
     });
 
-    it("elements are not resolved", function(done) {
+    it("objects are not provided", function(done) {
         var a = createData(1, [2]);
-        assertNonDag(from([a])
-            .pipe(topsort(nodeResolver)), [1, 2], done);
+        assertNodesUnresolved(
+            from([a]).pipe(topsort(nodeResolver)),
+            [1, 2],
+            done);
         });
 });
 
 describe("Asnycronous node resolvers", function () {
-    it(" that accept callbacks work as expected", function done(done) {
+    it(" that accept callbacks work as expected", function (done) {
         var a = createData(1, [2]);
         var b = createData(2);
         var nodeResolver = createAsyncNodeResolver(function (data) {
@@ -96,7 +120,7 @@ describe("Asnycronous node resolvers", function () {
             .pipe(topsort(nodeResolver))
             .pipe(assertOrder([b, a], done));
     });
-    it("that return promises work as expected", function done(done) {
+    it("that return promises work as expected", function (done) {
         var a = createData(1, [2]);
         var b = createData(2);
         var nodeResolver = createPromiseReturningNodeResolver(function (data) {
@@ -135,7 +159,7 @@ function createPromiseReturningNodeResolver(delayResolver) {
             return {
                 id: data.id,
                 deps: data.deps
-            }
+            };
         });
     };
 }
@@ -165,11 +189,11 @@ function assertAnyOrder(expected, done) {
     });
 }
 
-function assertNonDag(stream, expected, done) {
+function assertNodesUnresolved(stream, expected, done) {
     var complete = _.after(2, done);
-    return stream.on('dependency-error',
-        function (list) {
-            expect(list.sort()).toEqual(expected.sort());
+    return stream.on('topsort-error:unresolved-nodes',
+        function (nodes) {
+            expect(nodes.sort()).toEqual(expected.sort());
             complete();
         })
         .pipe(through(null, complete));
