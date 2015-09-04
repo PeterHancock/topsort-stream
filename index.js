@@ -54,6 +54,13 @@ Nodes.prototype = {
         var scope = this;
         return this.nodeResolver(data)
             .then(function (nodeInfo) {
+                nodeInfo = nodeInfo || {}
+                if (_.isUndefined(nodeInfo.id)) {
+                    nodeInfo.id = data;
+                }
+                if (_.isUndefined(nodeInfo.deps)) {
+                    nodeInfo.deps = [];
+                }
                 var node = scope.registerNode(nodeInfo, data);
                 return scope.getResolvedNodes(node).map(function (node) {
                     return node.data;
