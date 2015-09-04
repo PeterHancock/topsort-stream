@@ -1,7 +1,8 @@
-#topsort-stream ![Travis CI status](https://api.travis-ci.org/PeterHancock/topsort-stream.png)
-
+#topsort-stream
 
 Topological sort for streams
+
+![Travis CI status](https://api.travis-ci.org/PeterHancock/topsort-stream.png)
 
 [![NPM](https://nodei.co/npm/topsort-stream.png)](https://nodei.co/npm/topsort-stream/)
 
